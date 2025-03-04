@@ -43,11 +43,11 @@ jobs:
         if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
         working-directory: ./
         run: |
-          service postgresql start
+          systemctl start postgresql 
           cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd
           sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';" 
           sudo -u postgres psql -c "ALTER USER postgres WITH SUPERUSER;" 
-          service postgresql restart
+          systemctl restart postgresql 
       - name: Kill stale servers
         run: |
           # export NODE_OPTIONS=\"--max_old_space_size=16384\";
@@ -64,7 +64,7 @@ jobs:
         working-directory: ./packages/nocodb/tests/mysql-sakila-db
         run: |
           # Get a list of non-system databases and construct the DROP DATABASE statement for each
-          service mysql start
+          systemctl start mysql
           mysql -u'root' -p'password' -e "SHOW DATABASES" --skip-column-names | grep -Ev "(information_schema|mysql|performance_schema|sys)" | while read db; do
           mysql -u'root' -p'password' -e "DROP DATABASE IF EXISTS \`$db\`";
           done
@@ -206,8 +206,8 @@ jobs:
         if: always()
         working-directory: ./packages/nocodb
         run: |
-          service postgresql stop
-          service mysql stop
+          systemctl stop postgresql 
+          systemctl stop mysql 
       - name: Copy Artifacts to Local Artifacts Dir
         if: always()
         working-directory: ./
